@@ -18,5 +18,9 @@ module EcPractice
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    # 余計なモデルスペックとか必要なファクトリーを生成したくないからfalseを設定
+    config.generators do |g|
+      g.test_framework false
+    end
   end
 end
