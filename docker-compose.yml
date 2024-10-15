@@ -1,7 +1,8 @@
 version: "3.8"
 
 services:
-  app:
+  # 共通の設定をアンカーとして定義
+  app: &app
     build: .
     healthcheck:
       # ヘルスチェック方法
@@ -41,6 +42,13 @@ services:
         # service_started はサービスが開始されるのを待つだけなので、「他のサービスからのアクセスを受け付けられる」状態になっているかどうかは保証しません。
         # service_healthy は適切なヘルスチェックを行うことにより「他のサービスからのアクセスを受け付けられる」状態になるまでそれに依存しているサービスは起動を待ちます。
         condition: service_healthy
+  sidekiq:
+    # エイリアスでアンカーを参照している
+    # appの下の階層のymlがマージされるということ
+    <<: *app
+    command: ["sh", "bin/sidekiq.sh"]
+    # これ書かないと3000番にポート割当てできないエラーが出る
+    ports: []
   db:
     image: postgres
     # appコンテナがdbコンテナに依存しているのにdbコンテナが起動しているのかを確認する方法がないと、エラーで落ちる
@@ -56,8 +64,19 @@ services:
       - 3306:3306
     volumes:
       - postgres-data:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      start_period: 5s
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data:delegated
 
 volumes:
   rails-tmp-data:
   bundle-data:
   postgres-data:
+  redis-data:
