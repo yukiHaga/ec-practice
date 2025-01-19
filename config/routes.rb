@@ -5,5 +5,9 @@ Rails.application.routes.draw do
 
   mount Sidekiq::Web, at: '/sidekiq'
 
-  resources :users, only: %i(index)
+  resources :users
+
+  get 'login' => 'sessions#new', :as => :login
+  post 'login' => "sessions#create"
+  post 'logout' => 'sessions#destroy', :as => :logout
 end
